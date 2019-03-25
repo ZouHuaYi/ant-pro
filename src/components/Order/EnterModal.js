@@ -30,7 +30,7 @@ const EnterModal = Form.create({ name: 'form_in_modal' })(
                   { pattern: /^\d{11}$/, message:  '电话号码格式不正确'},
                 ],
               })(
-                <Input onPressEnter={e => {
+                <Input placeholder="请输入手机号" onPressEnter={e => {
                   e.preventDefault();
                   onCreate();
                 }}  />

@@ -3,7 +3,7 @@
  */
 import
 {
-  userLoginPhone,hospitalProject,thirdCategory
+  userLoginPhone,hospitalProject,thirdCategory,addProject
 }
   from '@/services/order'
 import { message } from 'antd';
@@ -45,7 +45,10 @@ export default {
       }
     },
     *getThirdSelect({payload},{call,put}){
-      const response = yield call(thirdCategory,{categoryPid:payload[1]});
+      yield  put({
+        type:'clearThirdSelect'
+      });
+      const response = yield call(thirdCategory,{categoryPid:payload[0]});
       if(response.messageCode==900 || response.messageCode==902){
           yield put({
             type:'saveThirdSelect',
@@ -54,7 +57,18 @@ export default {
       } else{
         message.error(response.message?response.message:'无法获取该项目的数据');
       }
-    }
+    },
+    *addNewProject({payload},{call,put}){
+      const callback =  payload['callback'];
+      delete payload['callback'];
+      const response = yield call(addProject,{...payload});
+      if(response.messageCode==900){
+        callback&&callback(response.data);
+      }else {
+        callback&&callback(false);
+        message.error(response.message?response.message:'添加项目失败');
+      }
+    },
   },
   reducers: {
     save(state,{payload}){
@@ -71,10 +85,15 @@ export default {
       }
     },
     saveThirdSelect(state,{payload}){
-      console.log(payload)
       return{
         ...state,
         thridProject:payload.data
+      }
+    },
+    clearThirdSelect(state){
+      return{
+        ...state,
+        thridProject:[]
       }
     },
     open(state){

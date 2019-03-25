@@ -3,24 +3,27 @@
  */
 import React,{Component} from 'react';
 import EnterModal from '@/components/Order/EnterModal';
-import EnterDetail from '@/components/Order/EnterDetail';
-import EnterFromModal from '@/components/Order/EnterFormModal';
+import EnterHeader from '@/components/Order/EnterHeader';
+import EnterFromModal from './components/EnterFormModal';
+import EnterFormList from '@/components/Order/EnterFormList'
 import {connect} from 'dva';
 import {
-  Button, Modal, Form, Input,message
+  Button, Modal, Form, Input,message,Spin,Divider
 } from 'antd';
 
 
 @connect(({enter,loading})=>({
   enter,
-  // loading: loading.effects['enter/getHospitalProject'],
+  userPhoneLoading:loading.effects['enter/submitUserPhone'],
 }))
 class Enter extends Component{
   constructor(props){
     super(props);
     this.state = {
       visible: false,
-      tableList:[]
+      tableList:[],
+      confirmLoading:false,
+      addStatus:false,
     };
   }
 
@@ -78,21 +81,47 @@ class Enter extends Component{
 
   handleCreateOrder = () =>{
     const form = this.formRefOrder.props.form;
-    const {thridProject} = this.props.enter;
+    const {thridProject,project} = this.props.enter;
+    const {dispatch} = this.props;
     let tableList = this.state.tableList;
-    console.log(this.state)
     form.validateFields((err, values) => {
-      console.log(values)
-      if(values!==0){
+      if(err) return;
+      if(values.select_3!==0){
         const third = thridProject.filter((item,key)=>item.id==values.select_3);
         tableList.push(third[0]);
         this.setState({
           tableList:tableList,
           visible:false,
+          addStatus:true,
         })
         form.resetFields();
+        this.setState({
+          addStatus:false,
+        })
       }else {
-
+        this.setState({
+          confirmLoading:true
+        })
+        dispatch({
+          type:'enter/addNewProject',
+          payload:{
+            categoryPid:values.select_2,
+            categoryId:values.select_1,
+            title:values.shop,
+            discountPrice:values.price,
+            callback:(res)=>{
+              if(res){
+                tableList.push(res);
+                this.setState({
+                  tableList:tableList,
+                  visible:false,
+                  confirmLoading:false,
+                })
+              }
+              form.resetFields();
+            }
+          }
+        })
       }
     })
   }
@@ -119,23 +148,22 @@ class Enter extends Component{
 
   render() {
     const {visible,user,project,thridProject} = this.props.enter;
+    const {userPhoneLoading,hospitalCateLoading} = this.props;
     return (
       <div >
         {user?
           (<div style={{background:'#ffffff'}}>
-              <EnterDetail
-                user={user}
-                onAddStatus={this.addOrderStatus}
-                tableList={this.state.tableList}
-              />
+              <EnterHeader user={user} />
+              <Divider/>
+              <div style={{boxSize:'border-box',padding:'0 20px'}}>
+                <Button size="large" onClick={this.addOrderStatus} loading={hospitalCateLoading} type="primary">添加服务类目</Button>
+              </div>
+              <Divider/>
+              <div style={{boxSize:'border-box',padding:'0 20px 40px'}}>
+                <EnterFormList tableList={[]}  />
+              </div>
               <EnterFromModal
-                wrappedComponentRef={this.saveFormRefOrder}
                 visible={this.state.visible}
-                onCancel={this.closeOderStatus}
-                onCreate={this.handleCreateOrder}
-                project={project}
-                thridProject={thridProject}
-                thirdSelectHandle={this.thirdSelectHandle}
               />
             </div>
           )

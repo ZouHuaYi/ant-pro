@@ -26,3 +26,10 @@ export async function thirdCategory(params) {
     body:{...params},
   })
 }
+
+export async function addProject(params) {
+  return request('/api/rest/business/product/add',{
+    method: 'POST',
+    body:{...params},
+  })
+}

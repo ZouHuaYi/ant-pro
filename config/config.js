@@ -65,8 +65,8 @@ export default {
   },
   proxy: {
     '/api': {
-      // target: 'http://test.topmei3mei.com/',
-      target:'http://192.168.2.236:8080/msm/',
+      target: 'http://test.topmei3mei.com/',
+      // target:'http://192.168.2.236:8080/msm/',
       changeOrigin: true,
       pathRewrite: {
         '^/api': ''

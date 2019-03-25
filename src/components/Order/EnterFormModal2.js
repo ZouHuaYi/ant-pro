@@ -10,29 +10,92 @@ const { Option } = Select;
 const EnterFromModal = Form.create({ name: 'form_in_modal' })(
 
   class extends React.Component {
+    constructor(props){
+      super(props);
+      this.state = {
+        secend_select:[],
+        third_select:props.thridProject,
+        secend_status:true,
+        third_status:true,
+        show_input:false,
+      }
+    }
+
+    changeFirst = (value)=>{
+      const secend = this.props.project.filter(item=>item.id==value);
+      this.setState({
+        secend_select:secend[0].pCategoryList,
+        secend_status:false,
+        third_status:true,
+        show_input:false,
+      })
+      this.props.form.setFieldsValue({
+        select_2: undefined
+      });
+      this.props.form.setFieldsValue({
+        select_3: undefined
+      });
+      this.firstValue = value;
+    }
+
+    changeSecond = (value) => {
+      this.props.form.setFieldsValue({
+        select_3: undefined
+      });
+      this.setState({
+        third_status:false,
+        show_input:false,
+        third_select:[],
+      })
+      this.props.thirdSelectHandle(this.firstValue,value);
+    }
+
+    changeThird = (value) => {
+        this.setState({
+          show_input:value==0
+        })
+    }
+
+    onCreate = () => {
+      
+      const form = this.props.form;
+      form.validateFields((err, values) => {
+        if(err) return;
+        
+        this.props.onCreate();
+      })
+    }
+
+    componentWillReceiveProps(nextProps){
+      if(nextProps.thridProject!==this.state.third_select){
+        this.setState({
+          third_select:nextProps.thridProject
+        })
+      }
+      if(nextProps.addStatus){
+        this.setState ({
+          secend_select:[],
+          third_select:[],
+          secend_status:true,
+          third_status:true,
+          show_input:false,
+        })
+      }
+    }
 
     render() {
       const {
-        visible,
-        form,
-        project,
-        confirmLoading,
-        secend_select,
-        secend_status,
-        third_select,
-        third_status,
-        show_input,
-        onCreate,
-        changeSecond,
-        changeFirst,
-        changeThird,
-        onCancel,
+        visible, onCancel,form,project,confirmLoading
       } = this.props;
+
       const { getFieldDecorator } = form;
+
       const formItemLayout = {
         labelCol: { span: 6 },
         wrapperCol: { span: 14 },
       };
+
+      const {secend_select,secend_status,third_status,show_input,third_select} = this.state;
 
       return (
         <Modal
@@ -41,7 +104,7 @@ const EnterFromModal = Form.create({ name: 'form_in_modal' })(
           okText="完成"
           confirmLoading={confirmLoading}
           onCancel={onCancel}
-          onOk={onCreate}
+          onOk={this.onCreate}
         >
           <Form {...formItemLayout}>
             <Form.Item label="第一项">
@@ -50,7 +113,7 @@ const EnterFromModal = Form.create({ name: 'form_in_modal' })(
                   { required: true, message: '第一项不能为空' },
                 ],
               })(
-                <Select placeholder="请输入第一项" onChange={changeFirst}>
+                <Select placeholder="请输入第一项" onChange={this.changeFirst}>
                   {
                     project.map((item,key)=>{
                       return (
@@ -68,7 +131,7 @@ const EnterFromModal = Form.create({ name: 'form_in_modal' })(
                   { required: true, message: '第二项不能为空' },
                 ],
               })(
-                <Select placeholder="请输入第二项" onChange={changeSecond} disabled={secend_status}>
+                <Select placeholder="请输入第二项" onChange={this.changeSecond} disabled={secend_status}>
                   {
                     secend_select.map((item, key)=> {
                       return (
@@ -86,7 +149,7 @@ const EnterFromModal = Form.create({ name: 'form_in_modal' })(
                     { required: true, message: '第三项不能为空' },
                   ],
                 })(
-                  <Select placeholder="请输入第三项" disabled={third_status} onChange={changeThird}>
+                  <Select placeholder="请输入第三项" disabled={third_status} onChange={this.changeThird}>
                     {
                       third_select.map((item,key)=>{
                         return (<Option key={item.id}  value={item.id} >{item.shortTitle}</Option>)
